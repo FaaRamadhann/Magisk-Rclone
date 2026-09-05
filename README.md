@@ -14,7 +14,7 @@ Rclone v1.75.0 (linux/arm64-v8a) + fusermount sebagai binary sistem (`/system/bi
 ### 1. Clone repository
 
 ```bash
-git clone https://github.com/FaaRamadhan2/Magisk-Rclone.git
+git clone https://github.com/FaaRamadhann/Magisk-Rclone.git
 cd Magisk-Rclone
 ```
 
