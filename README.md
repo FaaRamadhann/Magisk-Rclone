@@ -2,6 +2,8 @@
 
 Rclone v1.75.0 (linux/arm64-v8a) + fusermount sebagai binary sistem (`/system/bin`). Khusus untuk perangkat **ARM64 (arm64-v8a)**. Termasuk daemon opsional rclone rcd (API/Web GUI di `127.0.0.1:5572`) yang bisa dinyalakan lewat tombol Action di Magisk.
 
+> Note: Modul ini cocok untuk kamu yang ingin menggunakan Rclone langsung dari shell Android tanpa perlu membuka atau bergantung pada Termux, terutama jika kamu lebih memilih Rclone tersedia sebagai utility sistem.
+
 ## Fitur
 
 - Binary `rclone` v1.75.0 (linux/arm64-v8a)
