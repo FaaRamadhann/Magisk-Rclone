@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
 import os
-import sys
 import zipfile
 
-EXCLUDE_DIRS = {".git"}
-EXCLUDE_FILES = {".gitignore", "README.md", "LICENSE", "zip.py"}
+EXCLUDE_DIRS = {".git", "manager", "build"}
+EXCLUDE_FILES = {".gitignore", "README.md", "LICENSE", "zip.py", "update.json"}
 
 def main():
     root = os.path.dirname(os.path.abspath(__file__))

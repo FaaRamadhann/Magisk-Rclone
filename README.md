@@ -1,6 +1,8 @@
-# Faa Magisk Rclone
+# Faa Magisk Rclone (FMR)
 
 Rclone v1.75.0 (linux/arm64-v8a) + fusermount sebagai binary sistem (`/system/bin`). Khusus untuk perangkat **ARM64 (arm64-v8a)**. Termasuk daemon opsional rclone rcd (API/Web GUI di `127.0.0.1:5572`) yang bisa dinyalakan lewat tombol Action di Magisk.
+
+**Module ID:** `frcl`
 
 ## Fitur
 
@@ -8,13 +10,48 @@ Rclone v1.75.0 (linux/arm64-v8a) + fusermount sebagai binary sistem (`/system/bi
 - Binary `fusermount` (tidak perlu fuser dari Termux)
 - Config persisten di `/data/adb/rclone/rclone.conf`
 - Autostart daemon rclone rcd via tombol Action di Magisk
+- `update.json` untuk update via Magisk App
+- **FMR Manager** APK (cek update + download module langsung di HP)
 
-## Cara Install
+## FMR Manager (APK)
+
+Manager resmi untuk update & download module secara langsung di HP.
+
+| | |
+|---|---|
+| Package | `com.faa.frcl` |
+| File | `manager/build/frcl.apk` (build via `manager/build.bat`) |
+| Fitur | Cek update, download module zip, buka repository |
+
+### Build APK Manager (tanpa Android Studio)
+
+```bat
+cd manager
+build.bat
+```
+
+Syarat: JDK 17+ dan Android SDK build-tools (lihat `REQUIREMENTS.md`). `build.bat` otomatis keystore, zipalign, dan sign APK.
+
+### Install APK Manager
+
+```bash
+adb install -r manager/build/frcl.apk
+```
+
+## Update via Magisk
+
+Tambahkan URL berikut di repository Magisk App (Modul → siklus):
+
+```
+https://raw.githubusercontent.com/FaaRamadhann/Magisk-Rclone/main/update.json
+```
+
+## Cara Install Modul
 
 ### 1. Clone repository
 
 ```bash
-git clone https://github.com/FaaRamadhan2/Magisk-Rclone.git
+git clone https://github.com/FaaRamadhann/Magisk-Rclone.git
 cd Magisk-Rclone
 ```
 
@@ -67,7 +104,7 @@ su -c 'fusermount --version'
 ├── customize.sh       # Install script
 ├── service.sh         # Autostart daemon saat boot
 ├── action.sh          # Toggle daemon via tombol Action
-├── module.prop        # Module info
+├── module.prop        # Module info (id=frcl)
 └── uninstall.sh       # Cleanup saat uninstall
 ```
 
@@ -80,7 +117,7 @@ su -c 'fusermount --version'
 
 ## Author
 
-**faa_ramadhan**
+**Faa Ramadhan**
 
 ## License
 
