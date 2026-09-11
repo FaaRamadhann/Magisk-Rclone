@@ -6,7 +6,7 @@ if [ "$ABI" != "arm64-v8a" ]; then
   abort "! Modul ini hanya untuk perangkat arm64-v8a"
 fi
 
-ui_print "- Rclone v1.75.0 (linux/arm64) + fusermount"
+ui_print "- Rclone v1.75.1 (linux/arm64) + fusermount"
 ui_print "- Memasang binary ke /system/bin/rclone dan /system/bin/fusermount"
 
 set_perm_recursive "$MODPATH/system/bin" 0 2000 0755 0755

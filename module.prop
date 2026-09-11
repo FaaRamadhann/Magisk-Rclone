@@ -1,7 +1,7 @@
 id=frcl
 name=Faa Magisk Rclone (FMR)
-version=v1.75.0
-versionCode=17500
+version=v1.75.1
+versionCode=17501
 author=Faa Ramadhan
-description=Rclone v1.75.0 (linux/arm64-v8a) + fusermount sebagai binary sistem (/system/bin). Khusus untuk perangkat ARM64 (arm64-v8a). Termasuk daemon opsional rclone rcd (API/Web GUI di 127.0.0.1:5572) yang bisa dinyalakan lewat tombol Action di Magisk.
+description=Rclone v1.75.1 (linux/arm64-v8a) + fusermount sebagai binary sistem (/system/bin). Khusus untuk perangkat ARM64 (arm64-v8a). Termasuk daemon opsional rclone rcd (API/Web GUI di 127.0.0.1:5572) yang bisa dinyalakan lewat tombol Action di Magisk.
 minSdk=21

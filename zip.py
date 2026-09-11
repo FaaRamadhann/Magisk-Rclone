@@ -7,8 +7,8 @@ EXCLUDE_FILES = {".gitignore", "README.md", "LICENSE", "zip.py", "update.json"}
 
 def main():
     root = os.path.dirname(os.path.abspath(__file__))
-    out_name = input("Nama file zip [rclone-v1.75.0-fusermount-arm64.zip]: ").strip()
-    out_name = out_name or "rclone-v1.75.0-fusermount-arm64.zip"
+    out_name = input("Nama file zip [rclone-v1.75.1-fusermount-arm64.zip]: ").strip()
+    out_name = out_name or "rclone-v1.75.1-fusermount-arm64.zip"
     out_path = os.path.join(root, out_name)
 
     with zipfile.ZipFile(out_path, "w", zipfile.ZIP_DEFLATED) as zf:

@@ -1,6 +1,6 @@
 # Faa Magisk Rclone (FMR)
 
-Rclone v1.75.0 (linux/arm64-v8a) + fusermount sebagai binary sistem (`/system/bin`). Khusus untuk perangkat **ARM64 (arm64-v8a)**. Termasuk daemon opsional rclone rcd (API/Web GUI di `127.0.0.1:5572`) yang bisa dinyalakan lewat tombol Action di Magisk.
+Rclone v1.75.1 (linux/arm64-v8a) + fusermount sebagai binary sistem (`/system/bin`). Khusus untuk perangkat **ARM64 (arm64-v8a)**. Termasuk daemon opsional rclone rcd (API/Web GUI di `127.0.0.1:5572`) yang bisa dinyalakan lewat tombol Action di Magisk.
 
 **Module ID:** `frcl`
 
@@ -8,7 +8,7 @@ Rclone v1.75.0 (linux/arm64-v8a) + fusermount sebagai binary sistem (`/system/bi
 
 ## Fitur
 
-- Binary `rclone` v1.75.0 (linux/arm64-v8a)
+- Binary `rclone` v1.75.1 (linux/arm64-v8a)
 - Binary `fusermount` (tidak perlu fuser dari Termux)
 - Config persisten di `/data/adb/rclone/rclone.conf`
 - Autostart daemon rclone rcd via tombol Action di Magisk
@@ -65,14 +65,14 @@ python zip.py
 ```
 
 Script ini otomatis:
-- Membuat file zip `rclone-v1.75.0-fusermount-arm64.zip`
+- Membuat file zip `rclone-v1.75.1-fusermount-arm64.zip`
 - Melewati `.git`, `.gitignore`, `README.md`, `LICENSE`, `zip.py`
 
 Mau nama file beda? Tinggal ketik pas diminta.
 
 **Cara manual (Linux/macOS):**
 ```bash
-zip -r rclone-v1.75.0-fusermount-arm64.zip . -x ".git/*" ".gitignore" "README.md" "LICENSE" "zip.py"
+zip -r rclone-v1.75.1-fusermount-arm64.zip . -x ".git/*" ".gitignore" "README.md" "LICENSE" "zip.py"
 ```
 
 > **PENTING:** Jangan pakai `Compress-Archive` (PowerShell) karena path-nya pake backslash, Magisk tidak bisa extract dengan benar.
@@ -84,7 +84,7 @@ Copy file zip ke device lalu install lewat Magisk App:
 
 Atau via ADB:
 ```bash
-adb push rclone-v1.75.0-fusermount-arm64.zip /sdcard/
+adb push rclone-v1.75.1-fusermount-arm64.zip /sdcard/
 ```
 Lalu install dari Magisk App.
 

@@ -1,6 +1,6 @@
 {
-  "version": "v1.75.0",
-  "versionCode": 17500,
-  "zipUrl": "https://github.com/FaaRamadhann/Magisk-Rclone/releases/download/v1.75.0/rclone-v1.75.0-fusermount-arm64.zip",
-  "changelog": "https://github.com/FaaRamadhann/Magisk-Rclone/releases/tag/v1.75.0"
+  "version": "v1.75.1",
+  "versionCode": 17501,
+  "zipUrl": "https://github.com/FaaRamadhann/Magisk-Rclone/releases/download/v1.75.1/rclone-v1.75.1-fusermount-arm64.zip",
+  "changelog": "https://github.com/FaaRamadhann/Magisk-Rclone/releases/tag/v1.75.1"
 }
