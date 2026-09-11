@@ -13,9 +13,11 @@ Rclone v1.75.1 (linux/arm64-v8a) + fusermount sebagai binary sistem (`/system/bi
 - Config persisten di `/data/adb/rclone/rclone.conf`
 - Autostart daemon rclone rcd via tombol Action di Magisk
 - `update.json` untuk update via Magisk App
-- **FMR Manager** APK (dashboard rclone Web GUI di HP)
+- **FMR Manager** APK (opsional) — dashboard rclone Web GUI di HP
 
 ## FMR Manager (APK)
+
+> **Opsional** — Manager APK ini **bukan bagian wajib** dari modul. Modul rclone-nya tetap jalan sendiri (daemon rcd bisa dinyalakan lewat tombol ACTION di Magisk App atau shell). APK hanya pembungkus yang enak untuk buka dashboard di HP.
 
 Manager = **WebView dashboard rclone** (`http://127.0.0.1:5572/`) dengan tombol START/STOP untuk daemon `rcd`. Butuh root (via `su`) untuk menyalakan daemon.
 
