@@ -4,6 +4,8 @@ Rclone v1.75.0 (linux/arm64-v8a) + fusermount sebagai binary sistem (`/system/bi
 
 **Module ID:** `frcl`
 
+> Note: Modul ini cocok untuk kamu yang ingin menggunakan Rclone langsung dari shell Android tanpa perlu membuka atau bergantung pada Termux, terutama jika kamu lebih memilih Rclone tersedia sebagai utility sistem.
+
 ## Fitur
 
 - Binary `rclone` v1.75.0 (linux/arm64-v8a)
