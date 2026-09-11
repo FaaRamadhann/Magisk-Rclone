@@ -3,13 +3,13 @@
     package="com.faa.frcl">
 
     <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="28" />
 
     <application
         android:label="FMR Manager"
         android:icon="@drawable/ic_launcher"
         android:roundIcon="@drawable/ic_launcher"
         android:theme="@style/Theme.FMR.LightBlue"
+        android:usesCleartextTraffic="true"
         android:allowBackup="true">
         <activity android:name=".MainActivity" android:exported="true">
             <intent-filter>

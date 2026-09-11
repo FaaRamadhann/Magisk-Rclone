@@ -1,181 +1,250 @@
 package com.faa.frcl;
 
-import android.Manifest;
 import android.app.Activity;
-import android.content.ContentValues;
-import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.graphics.Color;
-import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
-import android.os.Environment;
-import android.provider.MediaStore;
+import android.os.Handler;
+import android.os.Looper;
 import android.view.Gravity;
+import android.view.KeyEvent;
 import android.view.View;
+import android.webkit.WebResourceError;
+import android.webkit.WebResourceRequest;
+import android.webkit.WebSettings;
+import android.webkit.WebView;
+import android.webkit.WebViewClient;
 import android.widget.Button;
 import android.widget.LinearLayout;
-import android.widget.ScrollView;
 import android.widget.TextView;
 
-import org.json.JSONObject;
-
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class MainActivity extends Activity {
 
-    private static final String APP_VERSION = "1.0.0";
-    private static final String UPDATE_JSON =
-            "https://raw.githubusercontent.com/FaaRamadhann/Magisk-Rclone/main/update.json";
-    private static final String REPO_URL =
-            "https://github.com/FaaRamadhann/Magisk-Rclone";
+    private static final String APP_VERSION = "2.0.0";
+    private static final String DASHBOARD_URL = "http://127.0.0.1:5572/";
 
-    private final ExecutorService pool = Executors.newFixedThreadPool(2);
+    private static final String RCD_DIR = "/data/adb/rclone";
+    private static final String PIDF = RCD_DIR + "/rcd.pid";
+    private static final String CONF = RCD_DIR + "/rclone.conf";
+    private static final String LOGF = RCD_DIR + "/rcd.log";
 
-    private ScrollView scroll;
+    private final ExecutorService pool = Executors.newSingleThreadExecutor();
+    private final Handler main = new Handler(Looper.getMainLooper());
+
+    private WebView webView;
     private TextView status;
-    private Button btnCheck;
-    private Button btnDownload;
-    private Button btnOpen;
-
-    private String latestZipUrl = "";
+    private Button btnStart;
+    private Button btnStop;
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+    protected void onCreate(Bundle b) {
+        super.onCreate(b);
         buildUi();
+        checkStatus();
+        webView.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                webView.loadUrl(DASHBOARD_URL);
+            }
+        }, 600);
         log("FMR Manager v" + APP_VERSION);
-        log("Manager resmi Faa Magisk Rclone (FMR).");
-        log("Pilih menu di bawah.");
+        log("Dashboard: " + DASHBOARD_URL);
     }
 
     private void buildUi() {
         int blue = Color.rgb(33, 150, 243);
         int blueDark = Color.rgb(25, 118, 210);
         int bg = Color.rgb(227, 242, 253);
-        int white = Color.WHITE;
-        int txt = Color.rgb(33, 33, 33);
 
         LinearLayout root = new LinearLayout(this);
         root.setOrientation(LinearLayout.VERTICAL);
         root.setBackgroundColor(bg);
-        root.setPadding(dp(20), dp(24), dp(20), dp(24));
 
         TextView title = new TextView(this);
         title.setText("FMR Manager");
-        title.setTextSize(28);
-        title.setTextColor(blueDark);
+        title.setTextSize(20);
+        title.setTextColor(Color.WHITE);
         title.setGravity(Gravity.CENTER);
         title.setTypeface(android.graphics.Typeface.DEFAULT_BOLD);
+        title.setBackgroundColor(blueDark);
+        title.setPadding(0, dp(28), 0, dp(28));
         root.addView(title);
 
-        TextView sub = new TextView(this);
-        sub.setText("Faa Magisk Rclone (FMR)");
-        sub.setTextSize(14);
-        sub.setTextColor(Color.rgb(90, 135, 195));
-        sub.setGravity(Gravity.CENTER);
-        root.addView(sub);
-
-        root.addView(spacer(24));
+        webView = new WebView(this);
+        WebSettings ws = webView.getSettings();
+        ws.setJavaScriptEnabled(true);
+        ws.setDomStorageEnabled(true);
+        ws.setLoadWithOverviewMode(true);
+        ws.setUseWideViewPort(true);
+        webView.setBackgroundColor(bg);
+        webView.setWebViewClient(new WebViewClient() {
+            @Override
+            public void onReceivedError(WebView view, WebResourceRequest req, WebResourceError err) {
+                if (req.isForMainFrame()) {
+                    log("Dashboard belum bisa dibuka (rcd mati?)");
+                }
+            }
+        });
+        root.addView(webView,
+                new LinearLayout.LayoutParams(
+                        LinearLayout.LayoutParams.MATCH_PARENT,
+                        0,
+                        1f));
 
         status = new TextView(this);
         status.setTextSize(13);
-        status.setTextColor(txt);
-        status.setBackgroundColor(white);
-        status.setPadding(dp(14), dp(14), dp(14), dp(14));
-        status.setMinHeight(dp(200));
-        status.setMaxHeight(dp(300));
+        status.setTextColor(Color.WHITE);
+        status.setGravity(Gravity.CENTER);
+        status.setBackgroundColor(Color.rgb(255, 152, 0));
+        status.setPadding(0, dp(10), 0, dp(10));
+        root.addView(status);
 
-        scroll = new ScrollView(this);
-        scroll.addView(status);
-        root.addView(scroll);
+        LinearLayout bar = new LinearLayout(this);
+        bar.setOrientation(LinearLayout.HORIZONTAL);
+        bar.setBackgroundColor(blue);
 
-        btnCheck = new Button(this);
-        btnCheck.setText("CEK UPDATE");
-        styleButton(btnCheck, blue);
-        btnCheck.setOnClickListener(new View.OnClickListener() {
+        btnStart = styleBarButton("START RCD", blueDark);
+        btnStop = styleBarButton("STOP RCD", Color.rgb(183, 28, 28));
+        bar.addView(btnStart, barLp());
+        bar.addView(btnStop, barLp());
+        root.addView(bar);
+
+        btnStart.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                checkUpdate();
+                startRcd();
             }
         });
-        root.addView(btnCheck);
-
-        btnDownload = new Button(this);
-        btnDownload.setText("DOWNLOAD MODULE");
-        styleButton(btnDownload, blue);
-        btnDownload.setEnabled(false);
-        btnDownload.setAlpha(0.4f);
-        btnDownload.setOnClickListener(new View.OnClickListener() {
+        btnStop.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                downloadModule();
+                stopRcd();
             }
         });
-        root.addView(btnDownload);
-
-        btnOpen = new Button(this);
-        btnOpen.setText("BUKA REPOSITORY");
-        styleButton(btnOpen, Color.rgb(120, 144, 200));
-        btnOpen.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                openBrowser(REPO_URL);
-            }
-        });
-        root.addView(btnOpen);
 
         setContentView(root);
     }
 
-    private LinearLayout spacer(int h) {
-        LinearLayout s = new LinearLayout(this);
-        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT, h);
-        s.setLayoutParams(lp);
-        return s;
+    private Button styleBarButton(String text, int color) {
+        Button b = new Button(this);
+        b.setText(text);
+        b.setAllCaps(false);
+        b.setTextSize(14);
+        b.setTextColor(Color.WHITE);
+        b.setBackgroundColor(color);
+        return b;
     }
 
-    private void styleButton(Button btn, int color) {
-        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+    private LinearLayout.LayoutParams barLp() {
+        return new LinearLayout.LayoutParams(
+                0,
                 LinearLayout.LayoutParams.MATCH_PARENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT);
-        lp.topMargin = dp(12);
-        lp.leftMargin = dp(12);
-        lp.rightMargin = dp(12);
-        btn.setLayoutParams(lp);
-        btn.setTextColor(Color.WHITE);
-        btn.setBackgroundColor(color);
-        btn.setAllCaps(false);
-        btn.setTextSize(14);
-        btn.setPadding(dp(6), dp(12), dp(6), dp(12));
+                1f);
+    }
+
+    private void checkStatus() {
+        runSu("if [ -f " + PIDF + " ] && kill -0 $(cat " + PIDF + ") 2>/dev/null; then echo RUNNING; else echo STOPPED; fi",
+                new Callback() {
+                    @Override
+                    public void onResult(int exit, String out) {
+                        if (out.contains("RUNNING")) {
+                            setStatus("RCD AKTIF", Color.rgb(0, 150, 80));
+                        } else {
+                            setStatus("RCD MATI", Color.rgb(255, 152, 0));
+                        }
+                    }
+                });
+    }
+
+    private void startRcd() {
+        setBusy(true);
+        log("Menyalakan rclone rcd...");
+        runSu("mkdir -p " + RCD_DIR + " && " +
+                "setsid sh -c 'rclone rcd --config " + CONF +
+                " --log-file " + LOGF + " --log-level INFO --rc-addr 127.0.0.1:5572 --rc-web-gui" +
+                " >/dev/null 2>&1 < /dev/null' & echo $! > " + PIDF,
+                new Callback() {
+                    @Override
+                    public void onResult(int exit, String out) {
+                        log("rcd start exit=" + exit);
+                        checkStatus();
+                        webView.loadUrl(DASHBOARD_URL);
+                        setBusy(false);
+                    }
+                });
+    }
+
+    private void stopRcd() {
+        setBusy(true);
+        log("Mematikan rclone rcd...");
+        runSu("kill $(cat " + PIDF + ") 2>/dev/null; rm -f " + PIDF,
+                new Callback() {
+                    @Override
+                    public void onResult(int exit, String out) {
+                        log("rcd stop exit=" + exit);
+                        checkStatus();
+                        webView.stopLoading();
+                        setBusy(false);
+                    }
+                });
     }
 
     private void setBusy(boolean busy) {
-        btnCheck.setEnabled(!busy);
-        btnCheck.setAlpha(busy ? 0.4f : 1f);
-        btnDownload.setEnabled(!busy && !latestZipUrl.isEmpty());
-        btnDownload.setAlpha(!busy && !latestZipUrl.isEmpty() ? 1f : 0.4f);
+        btnStart.setEnabled(!busy);
+        btnStop.setEnabled(!busy);
+    }
+
+    private void setStatus(final String text, final int color) {
+        main.post(new Runnable() {
+            @Override
+            public void run() {
+                status.setText(text);
+                status.setBackgroundColor(color);
+            }
+        });
     }
 
     private void log(final String s) {
-        runOnUiThread(new Runnable() {
+        main.post(new Runnable() {
             @Override
             public void run() {
-                status.append(s + "\n");
-                scroll.post(new Runnable() {
+                if (status != null) status.setText(s);
+            }
+        });
+    }
+
+    private interface Callback {
+        void onResult(int exit, String out);
+    }
+
+    private void runSu(final String cmd, final Callback cb) {
+        pool.execute(new Runnable() {
+            @Override
+            public void run() {
+                String output = "";
+                int exit = -1;
+                try {
+                    Process p = Runtime.getRuntime().exec(new String[]{"su", "-c", cmd});
+                    BufferedReader br = new BufferedReader(
+                            new InputStreamReader(p.getInputStream()));
+                    StringBuilder sb = new StringBuilder();
+                    String line;
+                    while ((line = br.readLine()) != null) sb.append(line).append("\n");
+                    output = sb.toString().trim();
+                    exit = p.waitFor();
+                } catch (Exception e) {
+                    output = "ERR: " + e.getMessage();
+                }
+                final String out = output;
+                final int code = exit;
+                main.post(new Runnable() {
                     @Override
                     public void run() {
-                        scroll.fullScroll(View.FOCUS_DOWN);
+                        cb.onResult(code, out);
                     }
                 });
             }
@@ -186,147 +255,13 @@ public class MainActivity extends Activity {
         return Math.round(v * getResources().getDisplayMetrics().density);
     }
 
-    private void checkUpdate() {
-        setBusy(true);
-        log("Mengecek update...");
-        pool.execute(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    HttpURLConnection c = openConn(UPDATE_JSON);
-                    int code = c.getResponseCode();
-                    if (code != 200) {
-                        log("HTTP " + code + " saat ambil update.json");
-                        setBusy(false);
-                        return;
-                    }
-                    InputStream in = c.getInputStream();
-                    ByteArrayOutputStream bo = new ByteArrayOutputStream();
-                    byte[] buf = new byte[8192];
-                    int n;
-                    while ((n = in.read(buf)) != -1) bo.write(buf, 0, n);
-                    in.close();
-
-                    JSONObject j = new JSONObject(bo.toString("UTF-8"));
-                    String ver = j.optString("version", "");
-                    latestZipUrl = j.optString("zipUrl", "");
-
-                    log("Versi terbaru: " + ver);
-                    if (latestZipUrl.isEmpty()) {
-                        log("URL zip kosong di update.json!");
-                    } else {
-                        log("Zip: " + latestZipUrl);
-                    }
-                    setBusy(false);
-                } catch (Exception e) {
-                    log("Gagal cek update: " + e.getMessage());
-                    setBusy(false);
-                }
-            }
-        });
-    }
-
-    private void downloadModule() {
-        if (latestZipUrl.isEmpty()) {
-            log("Belum ada URL. Tekan CEK UPDATE dulu.");
-            return;
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if (keyCode == KeyEvent.KEYCODE_BACK && webView.canGoBack()) {
+            webView.goBack();
+            return true;
         }
-        if (Build.VERSION.SDK_INT >= 23 && Build.VERSION.SDK_INT < 29
-                && checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                != PackageManager.PERMISSION_GRANTED) {
-            requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 100);
-            log("Izinkan akses storage, lalu tekan DOWNLOAD lagi.");
-            return;
-        }
-        setBusy(true);
-        log("Downloading: " + latestZipUrl);
-        pool.execute(new Runnable() {
-            @Override
-            public void run() {
-                boolean done = false;
-                try {
-                    HttpURLConnection c = openConn(latestZipUrl);
-                    int code = c.getResponseCode();
-                    if (code != 200) {
-                        log("HTTP " + code + " saat download");
-                        setBusy(false);
-                        return;
-                    }
-                    InputStream in = c.getInputStream();
-                    String name = fileNameOf(latestZipUrl);
-
-                    if (Build.VERSION.SDK_INT >= 29) {
-                        ContentValues v = new ContentValues();
-                        v.put(MediaStore.MediaColumns.DISPLAY_NAME, name);
-                        v.put(MediaStore.MediaColumns.MIME_TYPE, "application/zip");
-                        v.put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS);
-                        Uri uri = getContentResolver().insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, v);
-                        if (uri == null) {
-                            throw new IOException("Gagal buat file di MediaStore");
-                        }
-                        OutputStream os = getContentResolver().openOutputStream(uri);
-                        copy(in, os);
-                        os.close();
-                    } else {
-                        File dir = new File(Environment.getExternalStoragePublicDirectory(
-                                Environment.DIRECTORY_DOWNLOADS).getAbsolutePath());
-                        if (!dir.exists() && !dir.mkdirs()) {
-                            throw new IOException("Gagal buat folder Downloads");
-                        }
-                        File f = new File(dir, name);
-                        FileOutputStream fos = new FileOutputStream(f);
-                        copy(in, fos);
-                        fos.close();
-                    }
-                    in.close();
-                    done = true;
-                    log("Selesai: Download/" + name);
-                } catch (Exception e) {
-                    log("Gagal download: " + e.getMessage());
-                } finally {
-                    final boolean doneF = done;
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            setBusy(false);
-                        }
-                    });
-                    if (doneF) logDone();
-                }
-            }
-        });
-    }
-
-    private void logDone() {
-        log("Install zip lewat Magisk App (Modules -> Install from storage).");
-    }
-
-    private HttpURLConnection openConn(String urlStr) throws IOException {
-        HttpURLConnection c = (HttpURLConnection) new URL(urlStr).openConnection();
-        c.setConnectTimeout(20000);
-        c.setReadTimeout(60000);
-        c.setRequestProperty("User-Agent", "FMR-Manager/" + APP_VERSION);
-        c.setInstanceFollowRedirects(true);
-        return c;
-    }
-
-    private String fileNameOf(String url) {
-        String s = url.substring(url.lastIndexOf('/') + 1);
-        return (s == null || s.isEmpty()) ? "frcl-module.zip" : s;
-    }
-
-    private void copy(InputStream in, OutputStream out) throws IOException {
-        byte[] buf = new byte[65536];
-        int n;
-        while ((n = in.read(buf)) != -1) out.write(buf, 0, n);
-    }
-
-    private void openBrowser(String url) {
-        try {
-            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(url)));
-        } catch (Exception e) {
-            log("Gagal buka browser: " + e.getMessage());
-        }
+        return super.onKeyDown(keyCode, event);
     }
 
     @Override
